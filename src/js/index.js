@@ -11,29 +11,19 @@ const refs = {
   galleryContainer: document.querySelector('.gallery'),
   searchForm: document.querySelector('#search-form'),
 };
-refs.submitBtn = refs.searchForm.querySelector('[type="submit"]');
 
 const loadMoreBtn = new LoadMoreBtn({ selector: '[data-action="load-more"]', isHidden: true });
 
 const pixabayApi = new PixabayApi();
 
-const gallery = new SimpleLightbox('.gallery a', {
-  /* options */
-});
-gallery.on('show.simplelightbox', function () {
-  alert('open');
-});
-
-gallery.on('error.simplelightbox', function (e) {
-  alert(e);
-});
+const gallery = new SimpleLightbox('.gallery a');
 
 bindEvents();
 
 // functions
 function bindEvents() {
   refs.searchForm.addEventListener('submit', onSearch);
-  loadMoreBtn.refs.loadMoreBtn.addEventListener('click', () => fetchPhotos());
+  loadMoreBtn.refs.loadMoreBtn.addEventListener('click', fetchPhotos);
 }
 
 function onSearch(e) {
@@ -41,27 +31,33 @@ function onSearch(e) {
   pixabayApi.query = refs.searchForm.query.value;
   clearGalleryContainer();
 
-  fetchPhotos(true);
+  fetchPhotos({ isFirstQuery: true });
   loadMoreBtn.show();
 }
 
-async function fetchPhotos(isFirstQuery = false) {
+async function fetchPhotos({ isFirstQuery = false }) {
   loadMoreBtn.disable();
-  const data = await pixabayApi.getPhotos();
-  loadMoreBtn.enable();
-  appendGalleryMarkup(data.hits);
+  try {
+    const data = await pixabayApi.getPhotos();
 
-  if (isFirstQuery) {
-    if (data.totalHits) Notify.success(`Hooray! We found ${data.totalHits} images.`);
-    else {
-      Notify.failure('Sorry, there are no images matching your search query. Please try again.');
-      loadMoreBtn.hide();
-      return;
+    loadMoreBtn.enable();
+    appendGalleryMarkup(data.hits);
+
+    if (isFirstQuery) {
+      if (data.totalHits) Notify.success(`Hooray! We found ${data.totalHits} images.`);
+      else {
+        Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+        loadMoreBtn.hide();
+        return;
+      }
     }
-  }
 
-  if (data.hits.length < pixabayApi.perPage) {
-    Notify.info("We're sorry, but you've reached the end of search results.");
+    if (data.hits.length < pixabayApi.perPage) {
+      Notify.info("We're sorry, but you've reached the end of search results.");
+      loadMoreBtn.hide();
+    }
+  } catch (err) {
+    Notify.failure(`Something went wrong(${err.message})`);
     loadMoreBtn.hide();
   }
 }

@@ -13,17 +13,13 @@ export default class PixabyApi {
   }
 
   async getPhotos() {
-    try {
-      const { data } = await axios.get(
-        `?image_type=photo&orientation=horizontal&q=${this.#query}&page=${this.#page}&per_page=${
-          this.perPage
-        }`,
-      );
-      this.incrementPage();
-      return data;
-    } catch {
-      //todo add catching errors
-    }
+    const { data } = await axios.get(
+      `?image_type=photo&orientation=horizontal&q=${this.#query}&page=${this.#page}&per_page=${
+        this.perPage
+      }`,
+    );
+    this.incrementPage();
+    return data;
   }
 
   get query() {
