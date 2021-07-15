@@ -71,7 +71,6 @@ function appendGalleryMarkup(hits) {
   refs.galleryContainer.insertAdjacentHTML('beforeend', markup);
   scrollToNew();
   gallery.refresh();
-  console.log(gallery);
 }
 
 function clearGalleryContainer() {
